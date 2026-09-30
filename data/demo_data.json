@@ -1,0 +1,22 @@
+{
+  "description": "Synthetic demo sample; app currently defines the sample records in backend/hibp_api.py.",
+  "breaches": [
+    {
+      "name": "SampleForum",
+      "date": "2023-08-14",
+      "data_classes": [
+        "Email addresses",
+        "Passwords",
+        "Usernames"
+      ]
+    },
+    {
+      "name": "ExampleShop",
+      "date": "2024-02-03",
+      "data_classes": [
+        "Email addresses",
+        "Phone numbers"
+      ]
+    }
+  ]
+}
