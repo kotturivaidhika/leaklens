@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Who's Holding My Data? – Exposure Checker</title>
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#1b2733;--mute:#5d6b79;--line:#d5dce3;--hi:#e4572e;--mid:#e0a100;--lo:#1f8a70;--acc:#254ed1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141b22;--card:#1d2731;--ink:#e8edf2;--mute:#94a3b1;--line:#31404e;--hi:#ff7b57;--mid:#f0b429;--lo:#3fbf9f;--acc:#7c9bff}}
+:root[data-theme="dark"]{--bg:#141b22;--card:#1d2731;--ink:#e8edf2;--mute:#94a3b1;--line:#31404e;--hi:#ff7b57;--mid:#f0b429;--lo:#3fbf9f;--acc:#7c9bff}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 "Segoe UI",system-ui,sans-serif}
+h1,h2,h3{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;line-height:1.1;margin:0}
+main{max-width:1040px;margin:0 auto;padding:28px 18px 60px}
+header{padding:20px 0 10px}
+h1{font-size:clamp(2.1rem,6vw,3.6rem);font-weight:800;letter-spacing:-.02em;max-width:14ch}
+.lead{color:var(--mute);max-width:56ch;margin:14px 0 0}
+.grid{display:grid;gap:18px;grid-template-columns:1fr;margin-top:22px}
+@media(min-width:900px){.grid{grid-template-columns:1.05fr .95fr;align-items:start}.sticky{position:sticky;top:16px}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+h2{font-size:1.3rem;font-weight:600;margin-bottom:4px}
+.sub{color:var(--mute);font-size:.92rem;margin:0 0 14px}
+.apps{display:flex;flex-wrap:wrap;gap:8px}
+.app{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;font-size:.93rem;cursor:pointer}
+.app[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+.app:focus-visible,.hab input:focus-visible,summary:focus-visible,.link:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.link{background:none;border:0;color:var(--acc);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+.hab{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
+.hab:first-of-type{border-top:0}
+.hab input{margin-top:5px;width:18px;height:18px;accent-color:var(--acc)}
+.hab small{display:block;color:var(--mute)}
+.score{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.num{font:800 4.2rem/1 "Trebuchet MS","Segoe UI",sans-serif;letter-spacing:-.03em}
+.lvl{font-weight:500}
+.meter{height:12px;border-radius:9px;background:linear-gradient(90deg,var(--lo),var(--mid),var(--hi));position:relative;margin:14px 0 4px}
+.meter i{position:absolute;top:-5px;width:4px;height:22px;background:var(--ink);border-radius:2px;transition:left .5s;left:0}
+.scale{display:flex;justify-content:space-between;font-size:.78rem;color:var(--mute)}
+.cat{border-top:1px solid var(--line)}
+summary{list-style:none;cursor:pointer;padding:11px 0;display:grid;grid-template-columns:120px 1fr 34px;gap:10px;align-items:center;font-weight:500}
+summary::-webkit-details-marker{display:none}
+.bar{height:8px;border-radius:5px;background:var(--line);overflow:hidden}
+.bar b{display:block;height:100%;width:0;transition:width .5s}
+.pct{font-size:.85rem;color:var(--mute);text-align:right}
+.detail{padding:0 0 14px;font-size:.92rem}
+.why{color:var(--mute);margin:0 0 8px}
+.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.82rem;margin:0 6px 6px 0;border:1.5px solid}
+.t2{border-color:var(--hi);color:var(--hi)}.t1{border-color:var(--mid);color:var(--mid)}
+.empty{color:var(--mute);padding:14px 0}
+.tips{margin:0;padding-left:20px}.tips li{margin:0 0 8px}
+.legend{font-size:.82rem;color:var(--mute);margin-top:10px}
+.foot{margin-top:26px;color:var(--mute);font-size:.82rem;max-width:70ch}
+.actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:.9rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Who's holding your data?</h1>
+  <p class="lead">Pick the apps on your phone, tick your habits, and see which kinds of personal data are being collected about you, and by whom.</p>
+</header>
+
+<div class="grid">
+  <div>
+    <section class="box">
+      <h2>1. Apps you use</h2>
+      <p class="sub">Tap all that apply. <span id="count">0 selected</span></p>
+      <div class="apps" id="apps"></div>
+      <div class="actions"><button class="link" id="all">Select all</button><button class="link" id="none">Clear</button></div>
+    </section>
+    <section class="box" style="margin-top:18px">
+      <h2>2. Your habits</h2>
+      <p class="sub">Apps are only half the story. How you use them matters too.</p>
+      <div id="habits"></div>
+    </section>
+  </div>
+
+  <aside class="sticky">
+    <section class="box" aria-live="polite">
+      <h2>Your exposure</h2>
+      <div class="score"><div class="num" id="num">0</div><div><div class="lvl" id="lvl">Select some apps to begin</div><div class="sub" style="margin:0" id="sum"></div></div></div>
+      <div class="meter"><i id="pin"></i></div>
+      <div class="scale"><span>Low</span><span>Moderate</span><span>High</span></div>
+    </section>
+    <section class="box" style="margin-top:18px">
+      <h2>What's being collected</h2>
+      <p class="sub">Tap a row to see which apps collect it and what could go wrong.</p>
+      <div id="cats"></div>
+      <div class="legend"><span class="tag t2">Collects</span> regularly gathers it <span class="tag t1">May collect</span> optional or limited</div>
+    </section>
+    <section class="box" style="margin-top:18px">
+      <h2>What to do about it</h2>
+      <ul class="tips" id="tips"></ul>
+    </section>
+  </aside>
+</div>
+<p class="foot">Based on the general data types apps list in their public privacy policies and store privacy labels. Real collection varies by app version, country and your settings, so treat this as awareness, not an audit.</p>
+</main>
+
+<script>
+const CATS=[
+ {k:"Location",w:1.2,why:"Reveals where you live, work and travel. Combined over time it shows your daily routine."},
+ {k:"Contacts",w:1,why:"Your friends' and family's numbers are uploaded too, and they never agreed to it."},
+ {k:"Camera & mic",w:1.2,why:"Permission lets an app record photos, video or audio while in use."},
+ {k:"Browsing & activity",w:1,why:"What you watch, search and tap is used to profile your interests and target ads."},
+ {k:"Financial",w:1.3,why:"Payment details and spending history are prime targets for fraud if leaked."},
+ {k:"Photos & files",w:1,why:"Photos carry faces, places and metadata such as GPS coordinates."},
+ {k:"Health & body",w:1.3,why:"Sensitive by nature. Misuse can affect insurance, jobs and safety."},
+ {k:"Device & ad ID",w:.8,why:"A unique ID lets companies link your activity across different apps."},
+ {k:"Messages",w:1.2,why:"Content, or at least who you talk to and when, can be stored or analysed."},
+ {k:"Purchases",w:1,why:"Order history exposes your habits, address, and even health or lifestyle."}
+];
+// digits follow CATS order: 0 = none, 1 = may collect, 2 = collects
+const APPS=[
+ ["Instagram","2122020221"],["WhatsApp","1220110220"],["Facebook","2222121222"],["TikTok","1122020221"],
+ ["Snapchat","2221020220"],["X (Twitter)","2102010210"],["LinkedIn","1202110211"],["Telegram","1210010120"],
+ ["Google Maps","2012010201"],["Gmail","1202110222"],["YouTube","1012010201"],["Spotify","1112100202"],
+ ["Netflix","1002100202"],["Uber / Ola","2211200202"],["Swiggy / Zomato","2202200202"],
+ ["PhonePe / GPay","1201200212"],["Amazon","1212211202"],["Truecaller","2201000210"]
+];
+const HABITS=[
+ ["Location is always on","Not just 'while using the app'",6,"Switch location to 'only while using' and turn it off for apps that don't need maps."],
+ ["I reuse passwords","Same or similar password on several sites",8,"Use a password manager and give every account a unique password."],
+ ["No two-step login","2FA is off on email or social accounts",7,"Enable 2-step verification on your email first. It protects every reset link."],
+ ["I use public Wi-Fi","Cafes, airports, malls",4,"Avoid logging in to banking on public Wi-Fi, or use mobile data or a trusted VPN."],
+ ["I never review permissions","Accepted everything at install",7,"Open Settings, Privacy, Permission manager and remove camera, mic and contacts access from apps that don't need them."],
+ ["I post photos publicly","Profile open to anyone",5,"Set accounts to private and strip location tags before sharing photos."]
+];
+const $=id=>document.getElementById(id);
+const sel=new Set(),hab=new Set();
+const colour=v=>v>=60?"var(--hi)":v>=35?"var(--mid)":"var(--lo)";
+
+APPS.forEach((a,i)=>{const b=document.createElement("button");b.className="app";b.textContent=a[0];b.setAttribute("aria-pressed","false");
+ b.onclick=()=>{sel.has(i)?sel.delete(i):sel.add(i);b.setAttribute("aria-pressed",sel.has(i));render()};$("apps").appendChild(b)});
+HABITS.forEach((h,i)=>{const l=document.createElement("label");l.className="hab";
+ l.innerHTML=`<input type="checkbox"><span>${h[0]}<small>${h[1]}</small></span>`;
+ l.querySelector("input").onchange=e=>{e.target.checked?hab.add(i):hab.delete(i);render()};$("habits").appendChild(l)});
+const setAll=on=>{sel.clear();if(on)APPS.forEach((_,i)=>sel.add(i));document.querySelectorAll(".app").forEach((b,i)=>b.setAttribute("aria-pressed",sel.has(i)));render()};
+$("all").onclick=()=>setAll(true);$("none").onclick=()=>setAll(false);
+
+const open=new Set();
+function render(){
+ const chosen=[...sel].map(i=>APPS[i]);
+ $("count").textContent=chosen.length+" selected";
+ // per-category risk: each 'collects' adds 20, each 'may collect' adds 10, capped at 100
+ const risk=CATS.map((c,ci)=>{let s=0,list=[];chosen.forEach(a=>{const v=+a[1][ci];if(v){s+=v*10;list.push([a[0],v])}});
+  return {c,ci,pct:Math.min(100,s),list}});
+ const wsum=CATS.reduce((a,c)=>a+c.w,0);
+ const appScore=chosen.length?risk.reduce((a,r)=>a+r.pct*r.c.w,0)/wsum:0;
+ const habPts=[...hab].reduce((a,i)=>a+HABITS[i][2],0);
+ const total=Math.min(100,Math.round(appScore*0.7+habPts));
+ $("num").textContent=total;$("num").style.color=chosen.length?colour(total):"var(--ink)";
+ $("pin").style.left=`calc(${total}% - 2px)`;
+ $("lvl").textContent=!chosen.length&&!hab.size?"Select some apps to begin":total>=60?"High exposure":total>=35?"Moderate exposure":"Low exposure";
+ const hot=risk.filter(r=>r.pct>=60).length;
+ $("sum").textContent=chosen.length?`${chosen.length} apps, ${hot} data types heavily collected`:"";
+ // categories
+ const cats=$("cats");cats.innerHTML="";
+ if(!chosen.length){cats.innerHTML='<div class="empty">Nothing yet. Choose apps on the left.</div>'}
+ risk.slice().sort((a,b)=>b.pct-a.pct).forEach(r=>{
+  const d=document.createElement("details");d.className="cat";d.open=open.has(r.ci);
+  d.ontoggle=()=>d.open?open.add(r.ci):open.delete(r.ci);
+  const tags=r.list.length?r.list.sort((a,b)=>b[1]-a[1]).map(x=>`<span class="tag t${x[1]}">${x[0]}</span>`).join(""):'<span class="sub">None of your selected apps list this.</span>';
+  d.innerHTML=`<summary><span>${r.c.k}</span><span class="bar"><b style="width:${r.pct}%;background:${colour(r.pct)}"></b></span><span class="pct">${r.pct}</span></summary>
+  <div class="detail"><p class="why">${r.c.why}</p>${tags}</div>`;
+  if(chosen.length)cats.appendChild(d)});
+ // tips
+ const tips=[];
+ [...hab].forEach(i=>tips.push(HABITS[i][3]));
+ risk.filter(r=>r.pct>=60).slice(0,3).forEach(r=>{
+  const who=r.list.filter(x=>x[1]==2).map(x=>x[0]).slice(0,3).join(", ");
+  tips.push(`${r.c.k} is heavily collected (${who}). Review those apps' permissions and privacy settings.`)});
+ if(chosen.some(a=>a[1][1]==="2"))tips.push("Turn off contact syncing for apps that upload your address book.");
+ if(chosen.length>=8)tips.push("You have many apps installed. Uninstall the ones you rarely open, since each one is another place your data lives.");
+ tips.push("Use your Google or Apple account's privacy dashboard to delete ad profiles and old activity.");
+ $("tips").innerHTML=(chosen.length||hab.size)?tips.slice(0,7).map(t=>`<li>${t}</li>`).join(""):"<li>Your personalised tips will appear here.</li>";
+}
+render();
+</script>
+</body>
+</html>

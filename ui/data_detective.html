@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Data Detective | LeakLens</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f4ed;--card:#fff;--ink:#17231d;--mute:#617168;--line:#d9e2d8;--ok:#26734c;--bad:#bd493d;--mid:#aa7419;--acc:#356a4d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17211b;--card:#222f26;--ink:#edf4e9;--mute:#adbaaf;--line:#3b4a3e;--ok:#68c88c;--bad:#f17d6c;--mid:#e2b653;--acc:#8bbf77}}
+:root[data-theme="dark"]{--bg:#17211b;--card:#222f26;--ink:#edf4e9;--mute:#adbaaf;--line:#3b4a3e;--ok:#68c88c;--bad:#f17d6c;--mid:#e2b653;--acc:#8bbf77}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "IBM Plex Sans",system-ui,sans-serif;min-height:100vh}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;line-height:1.05}
+main{max-width:560px;margin:0 auto;padding:22px 16px 50px}
+.hide{display:none!important}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:14px 22px;font-weight:500;font-size:1.02rem;width:100%}
+.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn:disabled{opacity:.5}
+.hero h1{font-size:3.2rem;font-weight:800;margin-top:34px}
+.hero p{color:var(--mute);margin:14px 0 26px}
+.fan{display:flex;justify-content:center;margin:34px 0 10px;height:150px}
+.fan i{width:96px;height:132px;border-radius:14px;border:3px solid var(--card);display:grid;place-items:center;font:800 2.4rem "Bricolage Grotesque";color:#fff;margin:0 -14px;box-shadow:0 6px 18px #0003;font-style:normal}
+.fan i:nth-child(1){transform:rotate(-12deg);background:hsl(340 65% 43%)}
+.fan i:nth-child(2){transform:translateY(-8px);background:hsl(145 48% 34%);z-index:1}
+.fan i:nth-child(3){transform:rotate(12deg);background:hsl(35 75% 43%)}
+.hud{display:flex;align-items:center;gap:12px;margin-bottom:14px;font-weight:500}
+.prog{flex:1;height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.prog b{display:block;height:100%;background:var(--acc);width:0;transition:width .4s}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.9rem;white-space:nowrap}
+.stage{perspective:1200px}
+.card{background:var(--card);border-radius:16px;border:1px solid var(--line);overflow:hidden;box-shadow:0 10px 30px #14251c16;transition:transform .35s}
+.card.flip{transform:rotateY(90deg)}
+.top{padding:20px;color:#fff;display:flex;align-items:center;gap:14px;background:hsl(var(--h) 58% 37%)}
+.logo{width:56px;height:56px;border-radius:14px;background:#fff3;display:grid;place-items:center;font:800 1.8rem "Bricolage Grotesque"}
+.top h2{font-size:1.7rem;font-weight:800}
+.top small{opacity:.85}
+.body{padding:18px 20px 22px}
+.q{font-weight:500;margin:0 0 12px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chip{border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:11px 10px;text-align:left;font-size:.92rem;transition:transform .1s}
+.chip:active{transform:scale(.96)}
+.chip[aria-pressed=true]{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,transparent)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:8px;margin-bottom:6px;font-size:.92rem;border:2px solid transparent}
+.row.hit{border-color:var(--ok)}.row.miss{border-color:var(--bad)}.row.none{opacity:.55}
+.row small{color:var(--mute)}
+.fact{background:color-mix(in srgb,var(--acc) 10%,transparent);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:.92rem}
+.gain{font:800 1.5rem "Bricolage Grotesque";color:var(--ok);margin-bottom:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sp{margin-top:14px}
+.big{font:800 4.5rem/1 "Bricolage Grotesque"}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:14px}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge{padding:6px 12px;border-radius:999px;border:2px solid var(--line);font-size:.88rem;opacity:.55}
+.badge.on{opacity:1;border-color:var(--ok);color:var(--ok)}
+.meter{height:12px;border-radius:8px;background:linear-gradient(90deg,var(--ok),var(--mid),var(--bad));position:relative;margin:14px 0 4px}
+.meter i{position:absolute;top:-5px;width:4px;height:22px;background:var(--ink);border-radius:2px;left:0;transition:left .8s}
+.mute{color:var(--mute);font-size:.9rem}
+@media(max-width:420px){main{padding:16px 12px 36px}.hero h1{font-size:2.7rem}.hud{gap:6px}.pill{padding:4px 8px;font-size:.8rem}.body{padding:16px 14px 18px}.chip{font-size:.86rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<section id="start" class="hero">
+  <div class="fan" aria-hidden="true"><i>?</i><i>!</i><i>?</i></div>
+  <h1>Data Detective</h1>
+  <p>Ten app cards. Guess which personal data each app may collect, then reveal the answer, earn points, and explore an estimated privacy footprint.</p>
+  <button class="btn" id="play">Start the case</button>
+</section>
+<section id="game" class="hide">
+  <div class="hud"><div class="prog"><b id="pb"></b></div><span class="pill" id="pn">1/10</span><span class="pill" id="ps">0 pts</span><span class="pill" id="pk">🔥 0</span></div>
+  <div class="stage"><div class="card" id="card"></div></div>
+</section>
+<section id="end" class="hide">
+  <h2 style="font-size:1.1rem;color:var(--mute)">Case closed. Your rank:</h2>
+  <h1 id="rank" style="font-size:2.6rem;font-weight:800;margin:6px 0 16px"></h1>
+  <div class="box"><div class="mute">Privacy IQ (how well you guessed)</div><div class="big" id="iq"></div><div class="mute" id="pts"></div></div>
+  <div class="box"><h3>Your estimated exposure</h3><div class="mute" id="expl"></div><div class="meter"><i id="pin"></i></div><div class="mute" style="display:flex;justify-content:space-between"><span>Low</span><span>High</span></div><p id="ditch" style="margin:14px 0 0"></p></div>
+  <div class="box"><h3 style="margin-bottom:10px">Badges</h3><div class="badges" id="badges"></div></div>
+  <div class="two sp"><button class="btn" id="again">Play again</button><button class="btn alt" id="share">Copy result</button></div>
+  <p class="mute" id="msg" aria-live="polite"></p>
+</section>
+<p class="mute" style="margin-top:28px;font-size:.8rem">Based on data types commonly described in public privacy policies and app-store labels. Collection varies by app, version, region, and settings. This awareness game is an estimate, not an audit or measurement of your actual device.</p>
+</main>
+<script>
+const CATS=[["Location",1.2],["Contacts",1],["Camera & mic",1.2],["Browsing habits",1],["Payments",1.3],["Photos & files",1],["Health & body",1.3],["Device & ad ID",.8],["Messages",1.2],["Purchases",1]];
+const APPS=[
+["Instagram","2122020221",340,"Meta apps can use activity across its family of apps to tune the ads you see."],
+["WhatsApp","1220110220",145,"Messages are end-to-end encrypted, but phone number, contacts and usage patterns are still collected."],
+["Facebook","2222121222",220,"One of the widest collectors: activity, contacts, location and off-app tracking via ad tools."],
+["TikTok","1122020221",300,"The feed learns from how long you watch, not just what you like."],
+["Snapchat","2221020220",50,"Camera and mic access is core to the app, and location powers Snap Map."],
+["X (Twitter)","2102010210",205,"Your interests are inferred from who you follow and what you read, even without posting."],
+["LinkedIn","1202110211",210,"Career history, contacts and browsing on the site feed job and ad targeting."],
+["Telegram","1210010120",195,"Collects less than most, but normal chats are not end-to-end encrypted by default."],
+["Google Maps","2012010201",130,"Location history can show your home, workplace and routines if it is turned on."],
+["Gmail","1202110222",5,"Account and email metadata are used to run the service, and Google's other products link to it."],
+["YouTube","1012010201",0,"Watch and search history shapes recommendations and ad profiles."],
+["Spotify","1112100202",140,"Listening habits reveal mood, routines and interests."],
+["Netflix","1002100202",355,"Viewing history and device info are recorded for recommendations and billing."],
+["Uber / Ola","2211200202",250,"Pickup and drop history maps your regular places, including home and office."],
+["Swiggy / Zomato","2202200202",25,"Order history and saved addresses build a detailed picture of your habits."],
+["PhonePe / GPay","1201200212",175,"Payment history and contacts are needed for transfers, so they sit on the service."],
+["Amazon","1212211202",35,"Searches, views and purchases are used for recommendations and ads."],
+["Truecaller","2201000210",165,"Its caller ID relies on uploaded contact books, including numbers of people who never signed up."]
+];
+const $=id=>document.getElementById(id);
+let deck,i,pts,streak,best,used,iqSum,answered,guess;
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+const show=id=>["start","game","end"].forEach(s=>$(s).classList.toggle("hide",s!==id));
+function start(){deck=shuffle(APPS).slice(0,10);i=0;pts=0;streak=0;best=0;used=[];iqSum=0;answered=0;show("game");card()}
+function hud(){$("pb").style.width=(i/10*100)+"%";$("pn").textContent=Math.min(i+1,10)+"/10";$("ps").textContent=pts+" pts";$("pk").textContent="🔥 "+streak}
+function head(a){return `<div class="top" style="--h:${a[2]}"><div class="logo">${a[0][0]}</div><div><h2>${a[0]}</h2><small>Card ${i+1} of 10</small></div></div>`}
+function card(){const a=deck[i];guess=new Set();hud();$("card").innerHTML=head(a)+`<div class="body"><p class="q">What do you think ${a[0]} collects about you?</p><div class="chips" id="chips"></div><button class="btn sp" id="rev">Reveal the truth</button></div>`;CATS.forEach((c,ci)=>{const b=document.createElement("button");b.className="chip";b.textContent=c[0];b.setAttribute("aria-pressed","false");b.onclick=()=>{guess.has(ci)?guess.delete(ci):guess.add(ci);b.setAttribute("aria-pressed",guess.has(ci))};$("chips").appendChild(b)});$("rev").onclick=reveal}
+function flipTo(fn){$("card").classList.add("flip");setTimeout(()=>{fn();$("card").classList.remove("flip")},200)}
+function reveal(){flipTo(()=>{const a=deck[i];let ok=0;const rows=CATS.map((c,ci)=>{const v=+a[1][ci],g=guess.has(ci),right=(v>0)===g;if(right)ok++;const cls=v>0?(g?"hit":"miss"):(g?"miss":"none");const note=v==2?"Collects":v==1?"May collect":"Not listed";const tag=v>0&&!g?" · you missed it":!v&&g?" · not collected":"";return {cls,html:`<div class="row ${cls}"><span>${right?"✔":"✖"} ${c[0]}</span><small>${note}${tag}</small></div>`,v}}).sort((x,y)=>y.v-x.v);let gain=ok*10;if(ok>=8){streak++;best=Math.max(best,streak);gain+=streak*5}else streak=0;pts+=gain;iqSum+=ok;answered++;hud();$("card").innerHTML=head(a)+`<div class="body"><div class="gain">+${gain} pts · ${ok}/10 right${ok>=8?" · streak bonus!":""}</div>${rows.map(r=>r.html).join("")}<div class="fact"><b>Did you know?</b> ${a[3]}</div><p class="q">Do you use ${a[0]}?</p><div class="two"><button class="btn" id="y">Yes, I do</button><button class="btn alt" id="n">Nope</button></div></div>`;$("y").onclick=()=>next(true);$("n").onclick=()=>next(false)})}
+function next(u){if(u)used.push(deck[i]);i++;i<10?flipTo(card):finish()}
+function finish(){hud();show("end");const iq=Math.round(iqSum/(answered*10)*100);$("iq").textContent=iq+"%";$("pts").textContent=pts+" points · best streak "+best;$("rank").textContent=iq>=85?"Data Detective":iq>=70?"Privacy Ranger":iq>=50?"Curious Analyst":"Privacy Learner";const wsum=CATS.reduce((s,c)=>s+c[1],0);const risks=CATS.map((c,ci)=>Math.min(100,used.reduce((s,a)=>s+ +a[1][ci]*15,0)));const exp=used.length?Math.round(risks.reduce((s,r,ci)=>s+r*CATS[ci][1],0)/wsum):0;$("expl").textContent=used.length?`Based on the ${used.length} apps you marked as using.`:"You marked none of the apps in this deck as in use.";$("pin").style.left=`calc(${exp}% - 2px)`;if(used.length){const w=used.slice().sort((a,b)=>[...b[1]].reduce((s,x)=>s+ +x,0)-[...a[1]].reduce((s,x)=>s+ +x,0))[0];const top=risks.map((r,ci)=>[r,CATS[ci][0]]).sort((a,b)=>b[0]-a[0]).slice(0,2).map(x=>x[1]).join(" and ");$("ditch").innerHTML=`<b>Estimate ${exp}/100.</b> Most represented: ${top}. Review privacy settings for <b>${w[0]}</b>, the highest-scoring app in this sample.`}else $("ditch").textContent="";const B=[["Sharp eye (IQ 80+)",iq>=80],["On fire (3+ streak)",best>=3],["Minimalist (≤3 apps used)",used.length<=3],["Full case (10 cards)",true]];$("badges").innerHTML=B.map(b=>`<span class="badge ${b[1]?"on":""}">${b[0]}</span>`).join("");window._share=`I scored ${iq}% Privacy IQ and ${exp}/100 estimated exposure in LeakLens Data Detective. Rank: ${$("rank").textContent}`}
+$("play").onclick=start;$("again").onclick=start;
+$("share").onclick=async()=>{try{await navigator.clipboard.writeText(window._share);$("msg").textContent="Copied. Share it with a friend and challenge them!"}catch(e){$("msg").textContent=window._share}};
+</script>
+</body>
+</html>
